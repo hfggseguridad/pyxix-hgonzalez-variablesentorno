@@ -1,0 +1,63 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pyxix-hgonzalez-variablesentorno
+  namespace: default
+  labels:
+     app: pyxix-hgonzalez-variablesentorno
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pyxix-hgonzalez-variablesentorno
+  template:
+    metadata:
+      labels:
+        app: pyxix-hgonzalez-variablesentorno
+    spec:
+      containers:
+      - name: pyxix-hgonzalez-variablesentorno
+        image: us.icr.io/capacitacion-pyxis/app-hpa:v3
+        ports:
+          - containerPort: 8080
+        env:
+          - name: NOMBRE
+            valueFrom:
+              secretKeyRef:
+                name: var-pyxix-hgonzalez-variablesentorno
+                key: NOMBRE
+          - name: MONTURA
+            valueFrom:
+              secretKeyRef:
+                name: var-pyxix-hgonzalez-variablesentorno
+                key: MONTURA
+        volumeMounts:
+        - mountPath: /app/hgonzalez
+          name: montura
+      volumes:
+      - name: montura
+        persistentVolumeClaim:
+          claimName: hgonzalez-pyxis
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pyxix-hgonzalez-variablesentorno
+  namespace: default
+spec:
+  type: ClusterIP
+  selector:
+    app: pyxix-hgonzalez-variablesentorno
+  ports:
+    - port: 8080
+      targetPort: 8080
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+    name: route-pyxix-hgonzalez-variablesentorno
+    namespace: default
+spec:
+    to:
+        kind: Service
+        name: service-pyxix-hgonzalez-variablesentorno
